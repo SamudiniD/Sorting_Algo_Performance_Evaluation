@@ -3,7 +3,6 @@ package sorting;
 public class MergeSort {
 
     public static void sort(int[] arr) {
-        if (arr.length <= 1) return;
         mergeSort(arr, 0, arr.length - 1);
     }
 
@@ -11,6 +10,7 @@ public class MergeSort {
         if (left >= right) return;
 
         int mid = (left + right) / 2;
+
         mergeSort(arr, left, mid);
         mergeSort(arr, mid + 1, right);
 
@@ -18,17 +18,26 @@ public class MergeSort {
     }
 
     private static void merge(int[] arr, int left, int mid, int right) {
-        int[] temp = new int[right - left + 1];
-        int i = left, j = mid + 1, k = 0;
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
 
-        while (i <= mid && j <= right) {
-            temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
-        }
-        while (i <= mid) temp[k++] = arr[i++];
-        while (j <= right) temp[k++] = arr[j++];
+        int[] L = new int[n1];
+        int[] R = new int[n2];
 
-        for (int p = 0; p < temp.length; p++) {
-            arr[left + p] = temp[p];
+        for (int i = 0; i < n1; i++) L[i] = arr[left + i];
+        for (int i = 0; i < n2; i++) R[i] = arr[mid + 1 + i];
+
+        int i = 0, j = 0, k = left;
+
+        while (i < n1 && j < n2) {
+            if (L[i] <= R[j]) {
+                arr[k++] = L[i++];
+            } else {
+                arr[k++] = R[j++];
+            }
         }
+
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
     }
 }
