@@ -1,9 +1,5 @@
 package ui;
 
-import sorting.SortRunner; // keep if you'll use it later; safe to remove for now
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,6 +7,9 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import sorting.SortRunner;
 
 public class MainUI extends JFrame {
 
@@ -33,7 +32,6 @@ public class MainUI extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // TOP PANEL with buttons + column dropdown
         JPanel top = new JPanel();
         loadButton = new JButton("Load CSV");
         columnDropdown = new JComboBox<>();
@@ -47,70 +45,48 @@ public class MainUI extends JFrame {
 
         add(top, BorderLayout.NORTH);
 
-        // Table
         tableModel = new DefaultTableModel();
         table = new JTable(tableModel);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Button actions
         loadButton.addActionListener(e -> loadCsv());
-        evaluateButton.addActionListener(e -> {
-            int[] data = getSelectedNumericColumnData();
-            if (data == null) {
-                JOptionPane.showMessageDialog(this, "Please select a numeric column first.");
-                return;
-            }
-            Map<String, Long> results = SortRunner.runAll(data); // your SortRunner returns times
-            // TODO: visualize results in graphs / show best algorithm
-            JOptionPane.showMessageDialog(this, "Sorting times: " + results.toString());
-        });
-
+        evaluateButton.addActionListener(e -> evaluateSorting());
     }
 
-    /**
-     * Single loadCsv implementation (reads header, then rows, pads missing cells).
-     */
     private void loadCsv() {
         JFileChooser chooser = new JFileChooser();
-        int result = chooser.showOpenDialog(this);
-        if (result != JFileChooser.APPROVE_OPTION) return;
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         File file = chooser.getSelectedFile();
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
-            // ---------- READ HEADER (skipping leading blank lines) ----------
             String headerLine;
             do {
                 headerLine = br.readLine();
                 if (headerLine == null) {
-                    JOptionPane.showMessageDialog(this, "CSV file is empty!");
+                    JOptionPane.showMessageDialog(this, "CSV is empty!");
                     return;
                 }
                 headerLine = headerLine.trim();
             } while (headerLine.isEmpty());
 
-            // Clear table + dataset for new CSV
             tableModel.setRowCount(0);
             tableModel.setColumnCount(0);
             dataset.headers.clear();
             dataset.rows.clear();
 
-            // Parse header and add columns
             List<String> headers = parseCsvLine(headerLine);
             for (String h : headers) {
                 tableModel.addColumn(h);
                 dataset.headers.add(h);
             }
 
-            // ---------- READ ROWS ----------
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
 
                 List<String> values = parseCsvLine(line);
-
-                // pad missing cells so row length == headers length
                 while (values.size() < headers.size()) values.add("");
 
                 tableModel.addRow(values.toArray(new String[0]));
@@ -118,23 +94,22 @@ public class MainUI extends JFrame {
             }
 
             populateNumericColumns();
-            JOptionPane.showMessageDialog(this, "CSV loaded successfully (" + dataset.rows.size() + " rows).");
+
+            JOptionPane.showMessageDialog(this,
+                    "CSV loaded (" + dataset.rows.size() + " rows)");
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error loading CSV: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
         }
     }
 
-    // very simple CSV parser — split on comma and trim
-    // Note: this does NOT handle quoted commas. For the assignment that's acceptable.
     private List<String> parseCsvLine(String line) {
-        String[] parts = line.split(",", -1); // -1 keeps trailing empty columns
-        List<String> out = new ArrayList<>(parts.length);
+        String[] parts = line.split(",", -1);
+        List<String> out = new ArrayList<>();
         for (String p : parts) out.add(p.trim());
         return out;
     }
 
-    // Fill dropdown with numeric-only columns
     private void populateNumericColumns() {
         columnDropdown.removeAllItems();
         columnDropdown.addItem("Select numeric column");
@@ -146,14 +121,13 @@ public class MainUI extends JFrame {
         }
     }
 
-    // Check every non-empty cell in column — parse as integer
+    // ✅ FIXED: allow decimal numbers
     private boolean isNumericColumn(int colIndex) {
         for (String[] row : dataset.rows) {
-            if (colIndex >= row.length) return false;
             String val = row[colIndex].trim();
             if (val.isEmpty()) continue;
             try {
-                Integer.parseInt(val);
+                Double.parseDouble(val);
             } catch (Exception e) {
                 return false;
             }
@@ -161,33 +135,62 @@ public class MainUI extends JFrame {
         return true;
     }
 
-    // returns null if no numeric column selected
+    // Convert double → int for sorting
     private int[] getSelectedNumericColumnData() {
         String selected = (String) columnDropdown.getSelectedItem();
-        if (selected == null || selected.equals("Select numeric column")) return null;
+        if (selected == null || selected.equals("Select numeric column"))
+            return null;
 
         int colIndex = dataset.headers.indexOf(selected);
-        if (colIndex < 0) return null;
+        int[] arr = new int[dataset.rows.size()];
 
-        int n = dataset.rows.size();
-        int[] arr = new int[n];
-        for (int i = 0; i < n; i++) {
-            String[] row = dataset.rows.get(i);
-            String v = (colIndex < row.length) ? row[colIndex].trim() : "";
-            arr[i] = v.isEmpty() ? 0 : Integer.parseInt(v); // or throw/skip if empty
+        for (int i = 0; i < dataset.rows.size(); i++) {
+            String val = dataset.rows.get(i)[colIndex].trim();
+            double d = val.isEmpty() ? 0 : Double.parseDouble(val);
+            arr[i] = (int) Math.round(d);
         }
         return arr;
     }
 
+    private void evaluateSorting() {
+        int[] data = getSelectedNumericColumnData();
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainUI ui = new MainUI();
-            ui.setVisible(true);
-        });
+        if (data == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Please select a numeric column first.");
+            return;
+        }
+
+        Map<String, Long> results = SortRunner.runAll(data);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sorting Performance (ns)\n\n");
+
+        String bestAlgo = null;
+        long bestTime = Long.MAX_VALUE;
+
+        for (var e : results.entrySet()) {
+            sb.append(e.getKey()).append(" : ")
+              .append(e.getValue()).append("\n");
+
+            if (e.getValue() < bestTime) {
+                bestTime = e.getValue();
+                bestAlgo = e.getKey();
+            }
+        }
+
+        sb.append("\nBest Algorithm: ")
+          .append(bestAlgo)
+          .append(" (").append(bestTime).append(" ns)");
+
+        JOptionPane.showMessageDialog(this, sb.toString(),
+                "Sorting Results", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // simple container for data
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MainUI().setVisible(true));
+    }
+
     static class Dataset {
         List<String> headers = new ArrayList<>();
         List<String[]> rows = new ArrayList<>();
