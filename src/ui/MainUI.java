@@ -162,29 +162,59 @@ public class MainUI extends JFrame {
 
     // ================= EVALUATE SORTING =================
     private void evaluateSorting() {
-        int[] data = getSelectedNumericColumnData();
-
-        if (data == null || data.length == 0) {
+        // 1. Validate column selection
+        String selected = (String) columnDropdown.getSelectedItem();
+        if (selected == null || selected.equals("Select numeric column")) {
             JOptionPane.showMessageDialog(this,
                     "Please select a numeric column first.",
-                    "No Column Selected",
+                    "Selection Error",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        // 2. Validate dataset
+        if (dataset.rows.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No data loaded. Please load a CSV file first.",
+                    "No Data",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 3. Extract numeric data
+        int[] data;
+        try {
+            data = getSelectedNumericColumnData();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Selected column contains invalid (non-numeric) values.",
+                    "Data Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (data == null || data.length == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "No valid numeric data found.",
+                    "Data Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 4. Run sorting
         Map<String, Long> results = SortRunner.runAll(data);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Sorting Performance (nanoseconds)\n\n");
-
+        // 5. Find best algorithm
         String bestAlgo = null;
         long bestTime = Long.MAX_VALUE;
 
+        StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
+
         for (Map.Entry<String, Long> entry : results.entrySet()) {
             sb.append(entry.getKey())
-              .append(" : ")
-              .append(entry.getValue())
-              .append("\n");
+            .append(" : ")
+            .append(entry.getValue())
+            .append("\n");
 
             if (entry.getValue() < bestTime) {
                 bestTime = entry.getValue();
@@ -193,10 +223,10 @@ public class MainUI extends JFrame {
         }
 
         sb.append("\nBest Algorithm: ")
-          .append(bestAlgo)
-          .append(" (")
-          .append(bestTime)
-          .append(" ns)");
+        .append(bestAlgo)
+        .append(" (")
+        .append(bestTime)
+        .append(" ns)");
 
         JOptionPane.showMessageDialog(this,
                 sb.toString(),
