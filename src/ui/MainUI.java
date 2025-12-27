@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import sorting.SortRunner;
 
+
 public class MainUI extends JFrame {
 
     private JTable table;
@@ -32,6 +33,7 @@ public class MainUI extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
+        // ---------- TOP PANEL ----------
         JPanel top = new JPanel();
         loadButton = new JButton("Load CSV");
         columnDropdown = new JComboBox<>();
@@ -45,17 +47,21 @@ public class MainUI extends JFrame {
 
         add(top, BorderLayout.NORTH);
 
+        // ---------- TABLE ----------
         tableModel = new DefaultTableModel();
         table = new JTable(tableModel);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
+        // ---------- BUTTON ACTIONS ----------
         loadButton.addActionListener(e -> loadCsv());
         evaluateButton.addActionListener(e -> evaluateSorting());
     }
 
+    // ================= CSV LOADING =================
     private void loadCsv() {
         JFileChooser chooser = new JFileChooser();
-        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+        int result = chooser.showOpenDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) return;
 
         File file = chooser.getSelectedFile();
 
@@ -65,23 +71,26 @@ public class MainUI extends JFrame {
             do {
                 headerLine = br.readLine();
                 if (headerLine == null) {
-                    JOptionPane.showMessageDialog(this, "CSV is empty!");
+                    JOptionPane.showMessageDialog(this, "CSV file is empty!");
                     return;
                 }
                 headerLine = headerLine.trim();
             } while (headerLine.isEmpty());
 
+            // clear old data
             tableModel.setRowCount(0);
             tableModel.setColumnCount(0);
             dataset.headers.clear();
             dataset.rows.clear();
 
+            // headers
             List<String> headers = parseCsvLine(headerLine);
             for (String h : headers) {
                 tableModel.addColumn(h);
                 dataset.headers.add(h);
             }
 
+            // rows
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
@@ -94,12 +103,12 @@ public class MainUI extends JFrame {
             }
 
             populateNumericColumns();
-
             JOptionPane.showMessageDialog(this,
-                    "CSV loaded (" + dataset.rows.size() + " rows)");
+                    "CSV loaded successfully (" + dataset.rows.size() + " rows)");
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this,
+                    "Error loading CSV: " + ex.getMessage());
         }
     }
 
@@ -110,89 +119,125 @@ public class MainUI extends JFrame {
         return out;
     }
 
+    // ================= NUMERIC COLUMN HANDLING =================
     private void populateNumericColumns() {
         columnDropdown.removeAllItems();
         columnDropdown.addItem("Select numeric column");
 
-        for (int col = 0; col < dataset.headers.size(); col++) {
-            if (isNumericColumn(col)) {
-                columnDropdown.addItem(dataset.headers.get(col));
+        for (int i = 0; i < dataset.headers.size(); i++) {
+            if (isNumericColumn(i)) {
+                columnDropdown.addItem(dataset.headers.get(i));
             }
         }
     }
 
-    // ✅ FIXED: allow decimal numbers
     private boolean isNumericColumn(int colIndex) {
         for (String[] row : dataset.rows) {
+            if (colIndex >= row.length) return false;
             String val = row[colIndex].trim();
             if (val.isEmpty()) continue;
             try {
-                Double.parseDouble(val);
-            } catch (Exception e) {
+                Integer.parseInt(val);
+            } catch (NumberFormatException e) {
                 return false;
             }
         }
         return true;
     }
 
-    // Convert double → int for sorting
     private int[] getSelectedNumericColumnData() {
         String selected = (String) columnDropdown.getSelectedItem();
-        if (selected == null || selected.equals("Select numeric column"))
-            return null;
+        if (selected == null || selected.equals("Select numeric column")) return null;
 
         int colIndex = dataset.headers.indexOf(selected);
-        int[] arr = new int[dataset.rows.size()];
+        if (colIndex < 0) return null;
 
+        int[] data = new int[dataset.rows.size()];
         for (int i = 0; i < dataset.rows.size(); i++) {
             String val = dataset.rows.get(i)[colIndex].trim();
-            double d = val.isEmpty() ? 0 : Double.parseDouble(val);
-            arr[i] = (int) Math.round(d);
+            data[i] = val.isEmpty() ? 0 : Integer.parseInt(val);
         }
-        return arr;
+        return data;
     }
 
+    // ================= EVALUATE SORTING =================
     private void evaluateSorting() {
-        int[] data = getSelectedNumericColumnData();
-
-        if (data == null) {
+        // 1. Validate column selection
+        String selected = (String) columnDropdown.getSelectedItem();
+        if (selected == null || selected.equals("Select numeric column")) {
             JOptionPane.showMessageDialog(this,
-                    "Please select a numeric column first.");
+                    "Please select a numeric column first.",
+                    "Selection Error",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        // 2. Validate dataset
+        if (dataset.rows.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No data loaded. Please load a CSV file first.",
+                    "No Data",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 3. Extract numeric data
+        int[] data;
+        try {
+            data = getSelectedNumericColumnData();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Selected column contains invalid (non-numeric) values.",
+                    "Data Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (data == null || data.length == 0) {
+            JOptionPane.showMessageDialog(this,
+                    "No valid numeric data found.",
+                    "Data Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 4. Run sorting
         Map<String, Long> results = SortRunner.runAll(data);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Sorting Performance (ns)\n\n");
-
+        // 5. Find best algorithm
         String bestAlgo = null;
         long bestTime = Long.MAX_VALUE;
 
-        for (var e : results.entrySet()) {
-            sb.append(e.getKey()).append(" : ")
-              .append(e.getValue()).append("\n");
+        StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
 
-            if (e.getValue() < bestTime) {
-                bestTime = e.getValue();
-                bestAlgo = e.getKey();
+        for (Map.Entry<String, Long> entry : results.entrySet()) {
+            sb.append(entry.getKey())
+            .append(" : ")
+            .append(entry.getValue())
+            .append("\n");
+
+            if (entry.getValue() < bestTime) {
+                bestTime = entry.getValue();
+                bestAlgo = entry.getKey();
             }
         }
 
         sb.append("\nBest Algorithm: ")
-          .append(bestAlgo)
-          .append(" (").append(bestTime).append(" ns)");
+        .append(bestAlgo)
+        .append(" (")
+        .append(bestTime)
+        .append(" ns)");
 
-        JOptionPane.showMessageDialog(this, sb.toString(),
-                "Sorting Results", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this,
+                sb.toString(),
+                "Sorting Results",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
+    // ================= MAIN =================
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainUI().setVisible(true));
-    }
-
-    static class Dataset {
-        List<String> headers = new ArrayList<>();
-        List<String[]> rows = new ArrayList<>();
+        SwingUtilities.invokeLater(() -> {
+            new MainUI().setVisible(true);
+        });
     }
 }

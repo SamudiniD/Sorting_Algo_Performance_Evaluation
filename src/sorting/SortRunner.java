@@ -16,7 +16,7 @@ public class SortRunner {
         results.put("Merge Sort",     time(data, MergeSort::sort));
         results.put("Insertion Sort", time(data, InsertionSort::sort));
         // results.put("Shell Sort",     time(data, ShellSort::sort));
-        // results.put("Quick Sort",     time(data, QuickSort::sort));
+        results.put("Quick Sort",     time(data, QuickSort::sort));
         results.put("Heap Sort",      time(data, HeapSort::sort));
 
         return results;
