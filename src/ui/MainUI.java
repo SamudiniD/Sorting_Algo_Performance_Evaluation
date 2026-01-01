@@ -55,6 +55,19 @@ public class MainUI extends JFrame {
         // ---------- BUTTON ACTIONS ----------
         loadButton.addActionListener(e -> loadCsv());
         evaluateButton.addActionListener(e -> evaluateSorting());
+        evaluateButton.addActionListener(e -> {
+        int[] data = getSelectedNumericColumnData();
+
+        if (data == null) {
+        JOptionPane.showMessageDialog(this, "Please select a numeric column first.");
+        return;
+    }
+
+        Map<String, Long> results = SortRunner.runAll(data);
+        // Show graph window
+        new GraphWindow(results);
+});
+
     }
 
     // ================= CSV LOADING =================
@@ -233,6 +246,7 @@ public class MainUI extends JFrame {
                 "Sorting Results",
                 JOptionPane.INFORMATION_MESSAGE);
     }
+
 
     // ================= MAIN =================
     public static void main(String[] args) {
