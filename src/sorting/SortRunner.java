@@ -11,8 +11,8 @@ public class SortRunner {
     public static Map<String, Long> runAll(int[] original) {
         Map<String, Long> results = new HashMap<>();
 
-        results.put("Bubble Sort", time(original, BubbleSort::sort));
-        results.put("Selection Sort", time(original, SelectionSort::sort));
+        // results.put("Bubble Sort", time(original, BubbleSort::sort));
+        // results.put("Selection Sort", time(original, SelectionSort::sort));
         results.put("Insertion Sort", time(original, InsertionSort::sort));
         results.put("Merge Sort", time(original, MergeSort::sort));
         results.put("Quick Sort", time(original, QuickSort::sort));
