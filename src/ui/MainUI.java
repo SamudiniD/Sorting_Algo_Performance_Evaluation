@@ -206,35 +206,35 @@ public class MainUI extends JFrame {
         Map<String, Long> results = SortRunner.runAll(data);
 
         // 5. Show performance popup
-        showResultPopup(results);
+        new Results(results);
 
         // 6. Open Graph Window
-        new GraphWindow(results);
+        //new GraphWindow(results);
     }
 
-    private void showResultPopup(Map<String, Long> results) {
-        StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
+    // private void showResultPopup(Map<String, Long> results) {
+    //     StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
 
-        String bestAlgo = null;
-        long bestTime = Long.MAX_VALUE;
+    //     String bestAlgo = null;
+    //     long bestTime = Long.MAX_VALUE;
 
-        for (Map.Entry<String, Long> e : results.entrySet()) {
-            sb.append(e.getKey()).append(" : ").append(e.getValue()).append("\n");
+    //     for (Map.Entry<String, Long> e : results.entrySet()) {
+    //         sb.append(e.getKey()).append(" : ").append(e.getValue()).append("\n");
 
-            if (e.getValue() < bestTime) {
-                bestTime = e.getValue();
-                bestAlgo = e.getKey();
-            }
-        }
+    //         if (e.getValue() < bestTime) {
+    //             bestTime = e.getValue();
+    //             bestAlgo = e.getKey();
+    //         }
+    //     }
 
-        sb.append("\nBest Algorithm: ").append(bestAlgo)
-                .append(" (").append(bestTime).append(" ns)");
+    //     sb.append("\nBest Algorithm: ").append(bestAlgo)
+    //             .append(" (").append(bestTime).append(" ns)");
 
-        JOptionPane.showMessageDialog(this,
-                sb.toString(),
-                "Sorting Results",
-                JOptionPane.INFORMATION_MESSAGE);
-    }
+    //     JOptionPane.showMessageDialog(this,
+    //             sb.toString(),
+    //             "Sorting Results",
+    //             JOptionPane.INFORMATION_MESSAGE);
+    // }
 
     // ================= MAIN =================
     public static void main(String[] args) {
