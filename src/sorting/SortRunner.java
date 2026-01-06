@@ -3,6 +3,11 @@ package sorting;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Here Run every sorting algorithm (each class must provide a static `sort(int[])` method).
+ * Returns a LinkedHashMap of algorithm name -> elapsed time in nanoseconds.
+ */
+// Update 
 public class SortRunner {
 
     /**
