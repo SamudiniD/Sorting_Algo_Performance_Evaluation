@@ -1,7 +1,7 @@
 package sorting;
 
 public class QuickSort {
-    // Entry point used by SortRunner
+    // Entry point used by SortRunner Update
     public static void sort(int[] arr) {
         if (arr == null || arr.length <= 1) return;
         quickSort(arr, 0, arr.length - 1);
