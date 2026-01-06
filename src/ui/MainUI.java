@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import sorting.SortRunner;
 
+import sorting.SortRunner;
 
 public class MainUI extends JFrame {
 
@@ -54,7 +54,7 @@ public class MainUI extends JFrame {
 
         // ---------- BUTTON ACTIONS ----------
         loadButton.addActionListener(e -> loadCsv());
-        evaluateButton.addActionListener(e -> evaluateSorting());
+        evaluateButton.addActionListener(e -> runEvaluation());
     }
 
     // ================= CSV LOADING =================
@@ -173,7 +173,7 @@ public class MainUI extends JFrame {
             return;
         }
 
-        // 2. Validate dataset
+        // 2. Validate dataset loaded
         if (dataset.rows.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "No data loaded. Please load a CSV file first.",
@@ -182,13 +182,13 @@ public class MainUI extends JFrame {
             return;
         }
 
-        // 3. Extract numeric data
+        // 3. Extract numeric values
         int[] data;
         try {
             data = getSelectedNumericColumnData();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
-                    "Selected column contains invalid (non-numeric) values.",
+                    "Selected column contains invalid numeric values.",
                     "Data Error",
                     JOptionPane.ERROR_MESSAGE);
             return;
@@ -205,40 +205,39 @@ public class MainUI extends JFrame {
         // 4. Run sorting
         Map<String, Long> results = SortRunner.runAll(data);
 
-        // 5. Find best algorithm
-        String bestAlgo = null;
-        long bestTime = Long.MAX_VALUE;
+        // 5. Show performance popup
+        new Results(results);
 
-        StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
-
-        for (Map.Entry<String, Long> entry : results.entrySet()) {
-            sb.append(entry.getKey())
-            .append(" : ")
-            .append(entry.getValue())
-            .append("\n");
-
-            if (entry.getValue() < bestTime) {
-                bestTime = entry.getValue();
-                bestAlgo = entry.getKey();
-            }
-        }
-
-        sb.append("\nBest Algorithm: ")
-        .append(bestAlgo)
-        .append(" (")
-        .append(bestTime)
-        .append(" ns)");
-
-        JOptionPane.showMessageDialog(this,
-                sb.toString(),
-                "Sorting Results",
-                JOptionPane.INFORMATION_MESSAGE);
+        // 6. Open Graph Window
+        //new GraphWindow(results);
     }
+
+    // private void showResultPopup(Map<String, Long> results) {
+    //     StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
+
+    //     String bestAlgo = null;
+    //     long bestTime = Long.MAX_VALUE;
+
+    //     for (Map.Entry<String, Long> e : results.entrySet()) {
+    //         sb.append(e.getKey()).append(" : ").append(e.getValue()).append("\n");
+
+    //         if (e.getValue() < bestTime) {
+    //             bestTime = e.getValue();
+    //             bestAlgo = e.getKey();
+    //         }
+    //     }
+
+    //     sb.append("\nBest Algorithm: ").append(bestAlgo)
+    //             .append(" (").append(bestTime).append(" ns)");
+
+    //     JOptionPane.showMessageDialog(this,
+    //             sb.toString(),
+    //             "Sorting Results",
+    //             JOptionPane.INFORMATION_MESSAGE);
+    // }
 
     // ================= MAIN =================
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new MainUI().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new MainUI().setVisible(true));
     }
 }

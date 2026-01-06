@@ -1,6 +1,6 @@
 package sorting;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -10,30 +10,39 @@ import java.util.Map;
 // Update 
 public class SortRunner {
 
-    public static Map<String, Long> runAll(int[] data) {
-        Map<String, Long> results = new LinkedHashMap<>();
+    /**
+     * Runs all sorting algorithms and returns a Map with execution times (ns)
+     */
+    public static Map<String, Long> runAll(int[] original) {
+        Map<String, Long> results = new HashMap<>();
 
-
-        results.put("Merge Sort",     time(data, MergeSort::sort));
-        results.put("Insertion Sort", time(data, InsertionSort::sort));
-        // results.put("Shell Sort",     time(data, ShellSort::sort));
-        results.put("Quick Sort",     time(data, QuickSort::sort));
-        results.put("Heap Sort",      time(data, HeapSort::sort));
+        // results.put("Bubble Sort", time(original, BubbleSort::sort));
+        // results.put("Selection Sort", time(original, SelectionSort::sort));
+        results.put("Insertion Sort", time(original, InsertionSort::sort));
+        results.put("Merge Sort", time(original, MergeSort::sort));
+        results.put("Quick Sort", time(original, QuickSort::sort));
+        results.put("Heap Sort", time(original, HeapSort::sort));
+        results.put("Shell Sort", time(original, ShellSort::sort));
 
         return results;
     }
 
-    // Make a copy of the original array so each sort gets the same input
-    private static long time(int[] original, SortMethod method) {
+    /**
+     * Runs a single sorting method and returns time taken in nanoseconds.
+     */
+    public static long time(int[] original, SortMethod method) {
         int[] arr = original.clone();
+
         long start = System.nanoTime();
         method.sort(arr);
         long end = System.nanoTime();
+
         return end - start;
     }
 
-    // functional interface for passing method references of `sort(int[])`
-    private interface SortMethod {
+    @FunctionalInterface
+    public interface SortMethod {
         void sort(int[] arr);
     }
+
 }
