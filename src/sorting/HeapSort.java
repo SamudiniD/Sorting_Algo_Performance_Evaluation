@@ -2,7 +2,7 @@ package sorting;
 
 public class HeapSort {
 
-    // Public method to sort an array using Heap Sort
+    // Public method to sort an array using Heap Sort update
     public static void sort(int[] arr) {
         int n = arr.length;
 
