@@ -1,3 +1,4 @@
+// for testing results genaration
 package ui;
 
 import javax.swing.*;
@@ -21,7 +22,7 @@ public class GraphWindow extends JFrame {
     }
 
     // Panel that draws the bar chart
-    private static class GraphPanel extends JPanel {
+    static class GraphPanel extends JPanel {
 
         private Map<String, Long> results;
 
