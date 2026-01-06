@@ -2,7 +2,7 @@ package sorting;
 
 public class InsertionSort {
 
-    // Sorts the array in ascending order
+    // Sorts the array in ascending order update 
     public static void sort(int[] arr) {
         int n = arr.length;
 
