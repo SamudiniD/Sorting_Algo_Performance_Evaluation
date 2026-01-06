@@ -161,6 +161,7 @@ public class MainUI extends JFrame {
     }
 
     // ================= EVALUATE SORTING =================
+    // Update
     private void evaluateSorting() {
         // 1. Validate column selection
         String selected = (String) columnDropdown.getSelectedItem();
