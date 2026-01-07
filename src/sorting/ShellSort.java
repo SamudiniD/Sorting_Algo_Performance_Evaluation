@@ -8,7 +8,7 @@ public class ShellSort {
         // Start with a large gap, then reduce it
         for (int gap = n / 2; gap > 0; gap /= 2) {
 
-            // Perform a gapped insertion sort
+            // Perform a gapped insertion sort - updated
             for (int i = gap; i < n; i++) {
                 int temp = arr[i];
                 int j = i;
