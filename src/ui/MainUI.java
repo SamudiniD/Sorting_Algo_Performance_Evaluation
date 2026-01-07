@@ -101,7 +101,7 @@ public class MainUI extends JFrame {
                 tableModel.addRow(values.toArray(new String[0]));
                 dataset.rows.add(values.toArray(new String[0]));
             }
-
+            //populate Numeric columns 
             populateNumericColumns();
             JOptionPane.showMessageDialog(this,
                     "CSV loaded successfully (" + dataset.rows.size() + " rows)");
