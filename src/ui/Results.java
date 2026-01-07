@@ -1,13 +1,12 @@
 package ui;
 
-import javax.swing.*;
-import java.awt.*;          // <-- Missing import (BorderLayout)
+import java.awt.*;
 import java.util.Map;
+import javax.swing.*;
 
 public class Results extends JFrame {
 
     public Results(Map<String, Long> results) {
-
         setTitle("Sorting Results & Graph");
         setSize(900, 600);
         setLocationRelativeTo(null);
@@ -18,6 +17,7 @@ public class Results extends JFrame {
         // ---------- LEFT SIDE: Text Results ----------
         JTextArea textArea = new JTextArea();
         textArea.setEditable(false);
+        textArea.setFont(new Font("Arial", Font.PLAIN, 14));
 
         StringBuilder sb = new StringBuilder("Sorting Performance (ns)\n\n");
 
@@ -26,6 +26,7 @@ public class Results extends JFrame {
 
         for (Map.Entry<String, Long> e : results.entrySet()) {
             sb.append(e.getKey()).append(" : ").append(e.getValue()).append("\n");
+
             if (e.getValue() < best) {
                 best = e.getValue();
                 bestAlgo = e.getKey();
@@ -33,10 +34,10 @@ public class Results extends JFrame {
         }
 
         sb.append("\nBest Algorithm: ")
-                .append(bestAlgo)
-                .append(" (")
-                .append(best)
-                .append(" ns)");
+          .append(bestAlgo)
+          .append(" (")
+          .append(best)
+          .append(" ns)");
 
         textArea.setText(sb.toString());
 
@@ -45,9 +46,8 @@ public class Results extends JFrame {
 
         add(textScroll, BorderLayout.WEST);
 
-        // ---------- RIGHT SIDE: Graph ----------
-        GraphWindow.GraphPanel graphPanel = new GraphWindow.GraphPanel(results);
-        add(graphPanel, BorderLayout.CENTER);
+        // ---------- RIGHT SIDE: Graph Panel ----------
+        add(new GraphWindow.GraphPanel(results), BorderLayout.CENTER);
 
         setVisible(true);
     }
