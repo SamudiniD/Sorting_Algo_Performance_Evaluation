@@ -5,6 +5,9 @@ import java.util.Map;
 import javax.swing.*;
 
 public class Results extends JFrame {
+        /**Create graph panel for execution time visualization
+        Add algorithm names & chart titles
+        Display execution times & best algorithm text - updated**/
 
     public Results(Map<String, Long> results) {
         setTitle("Sorting Results & Graph");
